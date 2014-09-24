@@ -1,6 +1,6 @@
 # Static variables.
-zipfile1 = paste(getwd(), "/train.zip", sep="")
-zipfile2 = paste(getwd(), "/test.zip", sep="")
+zipfile1 = paste(getwd(), "/data/train.zip", sep="")
+zipfile2 = paste(getwd(), "/data/test.zip", sep="")
 xfile1 = "training.csv"
 xfile2 = "sorted_test.csv"
 

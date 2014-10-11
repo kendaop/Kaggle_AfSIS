@@ -13,12 +13,12 @@ if(!any(c(xfile1, xfile2) %in% list.files(getwd()))) {
 } else message("Files already unzipped.")
 
 # Read in the data.
-if(!exists("data", inherits=F)) {
+if(!exists("raw.train", inherits=F)) {
    message("Reading in training data...")
-   data = read.csv(xfile1, header=T)
+   raw.train = read.csv(xfile1, header=T)
 } else message("Data already read in to current environment.")
 
-if(!exists("test", inherits=F)) {
+if(!exists("raw.test", inherits=F)) {
    message("Reading in test data...")
-   test = read.csv(xfile2, header=T)
+   raw.test = read.csv(xfile2, header=T)
 } else message("Data already read in to current environment.")

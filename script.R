@@ -1,40 +1,47 @@
+# Session variables.
 setwd("C:/Users/K-Dawg/Documents/Git/Kaggle_AfSIS")
+ignorecores = 2
+use.validation = FALSE
+TRAIN = TRUE
+ANALYZE = TRUE
+
+# Static variables.
+outcomes = c(green="SOC", blue="pH", orange="Ca", red="P", purple="Sand")
+ignore = "PIDN"
 
 # Load libraries and supplementary code.
 library(doParallel)
 library(caret)
+library(fscaret)
 library(leaps)
+library(beepr)
 source("read_data.R")
 source("feature_selection.R")
+source("format_data.R")
 source("partition_data.R")
-
-# Session variables.
-ignorecores = 1
-use.validation = FALSE
-
-# Static variables.
-outcomes = c("SOC", "pH", "Ca", "P", "Sand")
-ignore = "PIDN"
-
-# Register processor cores.
-suppressWarnings(registerDoParallel(makeCluster(detectCores() - ignorecores)))
 
 set.seed(1141)
 
-message("Formatting data...please wait.")
+if(TRAIN) {
+   # Register processor cores.
+   suppressWarnings(registerDoParallel(makeCluster(detectCores() - ignorecores)))
 
-# Specify which features to ignore.
-ignore = c(ignore, ignore.samples())
+   # Run feature selection.
+   message("Partitioning data for feature selection analysis...")
+   partition.data(data, outcomes, "SOC", F)
+   
+   # Train model to analyze features.
+   message("Training model for feature selection analysis...")
+   lm = train(train.data, train.outcomes$SOC, method="lm", preProcess=c("center", "scale"))
+}
 
-# Re-order data to remove geographical bias.
-train = data[sample(nrow(data)), !(names(data) %in% ignore)]
-row.names(train) = 1:nrow(train)
+if(ANALYZE & TRAIN) {
+   # Analyze features with trained model.
+   message("Analyzing features...")
+   analyze.features(test.data, test.outcomes, lm)
+}
 
-# Convert factor variables to numerics.
-train$Depth = as.numeric(train$Depth) - 1
+plot(1:length(baseline.rmse), baseline.rmse, col="blue", type="l")
+lines(1:length(shuffle.rmse), shuffle.rmse, col="red", type="l")
 
-message("Data formatted.")
-
-message("Running ")
-regsubsets(x=train[,!(names(train) %in% c(outcomes, ignore))], y=train[,"SOC"], really.big=T)
-#select.features(outcomes[1])
+beep(8)

@@ -1,4 +1,4 @@
-#' @title Partition a data frame in a training set and testing set and eventually a inValidation set
+#' @title Partition a data frame in a training set and testing set and eventually a in.Validation set
 #' 
 #' @description
 #' This function uses the createDataPartition function from the caret package to create partitions of the data. 
@@ -6,25 +6,35 @@
 #' A validation set can be included by specifying the use.validation parameter. In this case, the data will be split into the following proportions: 45% training, 30% validation, 25% testing.
 #' 
 #' @param data Data frame to partition
-#' @param column.partition Column name existing in the data frame that will be used for the split
+#' @param outcome.name Column name existing in the data frame that will be used for the split
 #' @param use.validation Define if a validation set is needed.(Default value is FALSE)
-#' @return create global variables names as follow : training,testing and validation (if use.validation = T)
+#' @return create global variables names as follow : train.set,test.set and validation (if use.validation = T)
 require(caret)
-partitionData <- function(data, column.partition, use.validation=F)
+partition.data = function(data, outcome.names, primary.outcome, use.validation=F)
 {
   # Split data: 75% training, 25% testing.
-  inTrain <- createDataPartition(data[[column.partition]],
+  in.train = createDataPartition(data[[primary.outcome]], 
                                  p=.75,
                                  list=FALSE)
-  training <<- data[inTrain,]
-  testing <<- data[-inTrain,]
+  train.set = data[in.train,]
+  test.set = data[-in.train,]
   
   # If using validation set, split data: 45% training, 30% validation, 25% testing.
   if(use.validation) {
-    inValidation <<- createDataPartition(training[[column.partition]],
+    in.Validation = createDataPartition(train.set[[primary.outcome]],
                                          p=.4,
                                          list=FALSE)   
-    validation <<- training[inValidation,]
-    training <<- training[-inValidation,]
+    validation.set = train.set[in.Validation,]
+    train.set = train.set[-in.Validation,]
+    
+    # Break out data from outcomes in validation set.
+    validation.outcomes <<- validation.set[, outcome.names]
+    validation.data <<- not.named(outcome.names, validation.set)
   }  
+  
+  # Break out data from outcomes in training and test sets.
+  train.outcomes <<- train.set[, outcome.names]
+  train.data <<- not.named(outcome.names, train.set)
+  test.outcomes <<- test.set[, outcome.names]
+  test.data <<- not.named(outcome.names, test.set)
 }

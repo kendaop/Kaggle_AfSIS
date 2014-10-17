@@ -12,24 +12,26 @@
 require(caret)
 partition.data = function(data, outcome.names, primary.outcome, use.validation=F)
 {
-  # Split data: 75% training, 25% testing.
-  in.train = createDataPartition(data[[primary.outcome]], 
+   message("Partitioning data for feature selection analysis...")
+   
+   # Split data: 75% training, 25% testing.
+   in.train = createDataPartition(data[[primary.outcome]], 
                                  p=.75,
                                  list=FALSE)
-  train.set = data[in.train,]
-  test.set = data[-in.train,]
+   train.set = data[in.train,]
+   test.set = data[-in.train,]
   
-  # If using validation set, split data: 45% training, 30% validation, 25% testing.
-  if(use.validation) {
-    in.Validation = createDataPartition(train.set[[primary.outcome]],
+   # If using validation set, split data: 45% training, 30% validation, 25% testing.
+   if(use.validation) {
+      in.Validation = createDataPartition(train.set[[primary.outcome]],
                                          p=.4,
                                          list=FALSE)   
-    validation.set = train.set[in.Validation,]
-    train.set = train.set[-in.Validation,]
+      validation.set = train.set[in.Validation,]
+      train.set = train.set[-in.Validation,]
     
-    # Break out data from outcomes in validation set.
-    validation.outcomes <<- validation.set[, outcome.names]
-    validation.data <<- not.named(outcome.names, validation.set)
+      # Break out data from outcomes in validation set.
+      validation.outcomes <<- validation.set[, outcome.names]
+      validation.data <<- not.named(outcome.names, validation.set)
   }  
   
   # Break out data from outcomes in training and test sets.

@@ -4,3 +4,5 @@
 /sorted_test.csv
 /test.zip
 /train.zip
+/.RData
+/ws/*.RData

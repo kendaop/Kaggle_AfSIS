@@ -1,47 +1,69 @@
 # Session variables.
 setwd("C:/Users/K-Dawg/Documents/Git/Kaggle_AfSIS")
-ignorecores = 2
+ignorecores = 1
 use.validation = FALSE
-TRAIN = TRUE
-ANALYZE = TRUE
+TRAIN = FALSE
+ANALYZE = FALSE
+RETRAIN = FALSE
+TARGET = "SOC"
 
-# Static variables.
-outcomes = c(green="SOC", blue="pH", orange="Ca", red="P", purple="Sand")
-ignore = "PIDN"
+if(!exists("RESET"))
+   RESET = TRUE
 
-# Load libraries and supplementary code.
+# Load libraries.
 library(doParallel)
+library(foreach)
 library(caret)
 library(fscaret)
-library(leaps)
 library(beepr)
+
+# Load supplementary code.
 source("read_data.R")
 source("feature_selection.R")
 source("format_data.R")
 source("partition_data.R")
+source("train.R")
+source("save.R")
 
 set.seed(1141)
 
-if(TRAIN) {
-   # Register processor cores.
-   suppressWarnings(registerDoParallel(makeCluster(detectCores() - ignorecores)))
+# Register processor cores.
+registerDoParallel(makeCluster(detectCores() - ignorecores))
 
-   # Run feature selection.
-   message("Partitioning data for feature selection analysis...")
-   partition.data(data, outcomes, "SOC", F)
+if(RESET) {
+   # Read data from file.
+   read.data()
    
-   # Train model to analyze features.
-   message("Training model for feature selection analysis...")
-   lm = train(train.data, train.outcomes$SOC, method="lm", preProcess=c("center", "scale"))
+   # Format and parition data.
+   partition.data(format.data(), outcomes, TARGET, use.validation)
+   
+   # Reset the RESET flag, so this block isn't accidentally run twice in a row.
+   RESET = FALSE
 }
 
-if(ANALYZE & TRAIN) {
+if(TRAIN) {   
+   # Train model to analyze features.
+   message("Training model/s for feature selection analysis...")
+   
+   start.timer()
+   lasso = train(train.data, train.outcomes$SOC, method="lasso", preProcess=c("center", "scale"))
+   stop.timer("Total time to train model")
+   
+   # Save workspace to disk.
+   save.workspace()
+}
+
+if(ANALYZE) {
    # Analyze features with trained model.
    message("Analyzing features...")
-   analyze.features(test.data, test.outcomes, lm)
+   keep = analyze.features(test.data, test.outcomes, lasso)
+   
+   # Save workspace to disk.
+   save.workspace()
 }
 
-plot(1:length(baseline.rmse), baseline.rmse, col="blue", type="l")
-lines(1:length(shuffle.rmse), shuffle.rmse, col="red", type="l")
+if(RETRAIN) {
+   fits = sapply(outcomes, train.models, keep)
+}
 
 beep(8)

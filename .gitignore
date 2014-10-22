@@ -6,3 +6,8 @@
 /train.zip
 /.RData
 /ws/*.RData
+/data/RMSE_Ca.Rdf
+/data/RMSE_P.Rdf
+/data/RMSE_pH.Rdf
+/data/RMSE_Sand.Rdf
+/ws/SOC.RData
